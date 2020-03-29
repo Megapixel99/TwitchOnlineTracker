@@ -5,18 +5,17 @@
  * @interface UserData
  */
 export interface UserData {
-  id: string
-  login: string
-  display_name: string
-  type: string
-  broadcaster_type: string
-  description: string
-  profile_image_url: string
-  offline_image_url: string
-  view_count: number
-  email: string
+    id: string;
+    login: string;
+    display_name: string;
+    type: string;
+    broadcaster_type: string;
+    description: string;
+    profile_image_url: string;
+    offline_image_url: string;
+    view_count: number;
+    email: string;
 }
-
 /**
  * Maps to an api request from /users endpoint
  *
@@ -24,9 +23,8 @@ export interface UserData {
  * @interface UserRequestData
  */
 export interface UserRequestData {
-  data: UserData[]
+    data: UserData[];
 }
-
 /**
  * Maps to a stream JSON from the /streams endpoint
  *
@@ -34,19 +32,18 @@ export interface UserRequestData {
  * @interface StreamData
  */
 export interface StreamData {
-  id: string,
-  user_id: string,
-  user_name: string,
-  game_id: string,
-  community_ids: string[],
-  type: string,
-  title: string,
-  viewer_count: number,
-  started_at: string,
-  language: string,
-  thumbnail_url: string
+    id: string;
+    user_id: string;
+    user_name: string;
+    game_id: string;
+    community_ids: string[];
+    type: string;
+    title: string;
+    viewer_count: number;
+    started_at: string;
+    language: string;
+    thumbnail_url: string;
 }
-
 /**
  * Maps to an api request from /streams endpoint
  *
@@ -54,9 +51,8 @@ export interface StreamData {
  * @interface StreamRequestData
  */
 export interface StreamRequestData {
-  data: StreamData[]
+    data: StreamData[];
 }
-
 /**
  * Options for the TwitchOnlineTracker class
  *
@@ -64,14 +60,13 @@ export interface StreamRequestData {
  * @interface TwitchOnlineTrackerOptions
  */
 export interface TwitchOnlineTrackerOptions {
-  client_id: string,
-  token: string,
-  track?: string[],
-  pollInterval?: number,
-  debug?: boolean,
-  start?: boolean
+    client_id: string;
+    token: string;
+    track?: string[];
+    pollInterval?: number;
+    debug?: boolean;
+    start?: boolean;
 }
-
 /**
  * Options for the /users api endpoint for Twitch
  *
@@ -79,10 +74,9 @@ export interface TwitchOnlineTrackerOptions {
  * @interface UsersApiEndpointOptions
  */
 export interface UsersApiEndpointOptions {
-  id?: string[],
-  login?: string[]
+    id?: string[];
+    login?: string[];
 }
-
 /**
  * Options for the /streams api endpoint for Twitch
  *
@@ -90,12 +84,12 @@ export interface UsersApiEndpointOptions {
  * @interface StreamsApiEndPointOptions
  */
 export interface StreamsApiEndPointOptions {
-  after?:  string,
-  before?: string,
-  community_id?: string[],
-  first?:  number,
-  game_id?:  string,
-  language?: string[],
-  user_id?:  string[],
-  user_login?: string[]
+    after?: string;
+    before?: string;
+    community_id?: string[];
+    first?: number;
+    game_id?: string;
+    language?: string[];
+    user_id?: string[];
+    user_login?: string[];
 }
