@@ -61,7 +61,7 @@ export interface StreamRequestData {
  */
 export interface TwitchOnlineTrackerOptions {
     client_id: string;
-    token: string;
+    client_secret: string;
     track?: string[];
     pollInterval?: number;
     debug?: boolean;

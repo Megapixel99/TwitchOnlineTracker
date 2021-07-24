@@ -24,6 +24,8 @@ export class TwitchOnlineTracker extends EventEmitter {
 
   tracked: Set<string>
 
+  bearer: string
+
   _cachedStreamData: StreamData[]
   _loopIntervalId: any
 
@@ -84,7 +86,7 @@ export class TwitchOnlineTracker extends EventEmitter {
       const response = await axios(twitchApiBase + endpoint, {
         headers: {
           'Client-ID': this.options.client_id,
-          'Authorization': `Bearer ${this.options.token}`
+          'Authorization': `Bearer ${this.bearer}`
         }
       })
       let rv = {}
@@ -191,12 +193,44 @@ export class TwitchOnlineTracker extends EventEmitter {
    *
    * @memberof TwitchOnlineTracker
    */
-  start () {
+   start () {
     this.log(`starting to poll at ${this.options.pollInterval}s intervals`)
-    this._loopIntervalId = setInterval(() => {
-      this._loop()
-    }, this.options.pollInterval * 1000)
-    return this
+    this.getTwitchBearerToken(this.options.client_id, this.options.client_secret).then(res => {
+      this.bearer = res;
+      this._loopIntervalId = setInterval(() => {
+        this._loop()
+      }, this.options.pollInterval * 1000)
+      return this
+    })
+  }
+
+  /**
+   * Get a Twitch Auth Bearer for App-Auth
+   *
+   * @param {string} clientId Your App-Client-Id
+   * @param {string} clientSecrect Your App-Client-Secret
+   * @memberof TwitchOnlineTracker
+   */
+  async getTwitchBearerToken (clientId: string, clientSecrect: string) {
+    this.log(`getting a Twitch bearer token`)
+      return new Promise<string>((resolve, reject) => {
+        axios.post('https://id.twitch.tv/oauth2/token', null, { params: {
+            "client_id": clientId,
+            "client_secret": clientSecrect,
+            "grant_type": "client_credentials"
+        }})
+        .then(res => {
+            if(res.status === 200) {
+                resolve(res.data.access_token);
+            } else {
+                reject(res.status);
+            }
+        })
+        .catch(error => {
+          this.emit('error', error)
+          reject(error);
+        })
+    });
   }
 
   /**
@@ -252,11 +286,19 @@ export class TwitchOnlineTracker extends EventEmitter {
     } catch (e) {
       // unauthorized
       if (e.message.includes('401')) {
-        this.emit('error', Error('Twitch returned with an Unauthorized response. Your client_id probably wrong. Stopping.'))
+        this.getTwitchBearerToken(this.options.client_id, this.options.client_secret)
+        .then(res => {
+          // refreshing the token
+          this.bearer = res
+        })
+        .catch(e => {
+          this.emit('error', Error('Twitch returned with an Unauthorized response. Your client_id probably wrong. Stopping.'))
+          this.stop()
+        })
       } else {
         this.emit('error', e)
+        this.stop()
       }
-      this.stop()
     }
   }
 

@@ -9,6 +9,7 @@ import { StreamData, StreamsApiEndPointOptions, TwitchOnlineTrackerOptions, User
 export declare class TwitchOnlineTracker extends EventEmitter {
     options: TwitchOnlineTrackerOptions;
     tracked: Set<string>;
+    bearer: string;
     _cachedStreamData: StreamData[];
     _loopIntervalId: any;
     /**
@@ -69,7 +70,15 @@ export declare class TwitchOnlineTracker extends EventEmitter {
      *
      * @memberof TwitchOnlineTracker
      */
-    start(): this;
+    start(): void;
+    /**
+     * Get a Twitch Auth Bearer for App-Auth
+     *
+     * @param {string} clientId Your App-Client-Id
+     * @param {string} clientSecrect Your App-Client-Secret
+     * @memberof TwitchOnlineTracker
+     */
+    getTwitchBearerToken(clientId: string, clientSecrect: string): Promise<string>;
     /**
      * Stops polling.
      *
