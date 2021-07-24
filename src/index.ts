@@ -221,9 +221,11 @@ export class TwitchOnlineTracker extends EventEmitter {
         }})
         .then(res => {
             if(res.status === 200) {
-                resolve(res.data.access_token);
+              this.log(`got a bearer token`)
+              resolve(res.data.access_token);
             } else {
-                reject(res.status);
+              this.log(`Error while getting a bearer token`)
+              reject(res.status);
             }
         })
         .catch(error => {
@@ -286,12 +288,15 @@ export class TwitchOnlineTracker extends EventEmitter {
     } catch (e) {
       // unauthorized
       if (e.message.includes('401')) {
+        this.log(`unauthorized... trying to get a new bearer token`)
         this.getTwitchBearerToken(this.options.client_id, this.options.client_secret)
         .then(res => {
           // refreshing the token
+          this.log(`got a bearer token`)
           this.bearer = res
         })
         .catch(e => {
+          this.log(e)
           this.emit('error', Error('Twitch returned with an Unauthorized response. Your client_id probably wrong. Stopping.'))
           this.stop()
         })
