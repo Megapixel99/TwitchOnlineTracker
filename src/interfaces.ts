@@ -48,6 +48,30 @@ export interface StreamData {
 }
 
 /**
+ * Maps to a clip JSON from the /clips endpoint
+ *
+ * @export
+ * @interface ClipData
+ */
+export interface ClipData {
+  id: string,
+  url: string,
+  embed_url: string,
+  broadcaster_id: string,
+  broadcaster_name: string,
+  creator_id: string,
+  creator_name: string,
+  video_id: string,
+  game_id: string,
+  language: string,
+  title: string,
+  view_count: number,
+  created_at: string,
+  thumbnail_url: string,
+  duration: number
+}
+
+/**
  * Maps to an api request from /streams endpoint
  *
  * @export
@@ -55,6 +79,16 @@ export interface StreamData {
  */
 export interface StreamRequestData {
   data: StreamData[]
+}
+
+/**
+ * Maps to an api request from /clips endpoint
+ *
+ * @export
+ * @interface StreamRequestData
+ */
+export interface ClipRequestData {
+  data: ClipData[]
 }
 
 /**
@@ -69,7 +103,8 @@ export interface TwitchOnlineTrackerOptions {
   track?: string[],
   pollInterval?: number,
   debug?: boolean,
-  start?: boolean
+  start?: boolean,
+  clips?: boolean
 }
 
 /**
@@ -98,4 +133,18 @@ export interface StreamsApiEndPointOptions {
   language?: string[],
   user_id?:  string[],
   user_login?: string[]
+}
+
+/**
+ * Options for the /clips api endpoint for Twitch
+ *
+ * @export
+ * @interface StreamsApiEndPointOptions
+ */
+export interface ClipsApiEndPointOptions {
+  broadcaster_id?: string,
+  game_id?: string,
+  started_at?: string,
+  ended_at?: string,
+  id?: string
 }

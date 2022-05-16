@@ -8,8 +8,11 @@ import {
   UserData,
   UserRequestData,
   StreamData,
+  ClipData,
   StreamRequestData,
+  ClipRequestData,
   StreamsApiEndPointOptions,
+  ClipsApiEndPointOptions,
   TwitchOnlineTrackerOptions,
   UsersApiEndpointOptions
 } from './interfaces'
@@ -27,6 +30,7 @@ export class TwitchOnlineTracker extends EventEmitter {
   bearer: string
 
   _cachedStreamData: StreamData[]
+  _cachedClipData: ClipData[]
   _loopIntervalId: any
 
   /**
@@ -38,7 +42,9 @@ export class TwitchOnlineTracker extends EventEmitter {
     super()
     this.tracked = new Set()
     this._cachedStreamData = []
+    this._cachedClipData = []
     this.options = options
+    this._start = new Date();
 
     if (this.options.client_id === undefined || typeof this.options.client_id !== 'string') {
       throw new Error('`client_id` must be set and a string for TwitchOnlineTracker to work.')
@@ -49,7 +55,7 @@ export class TwitchOnlineTracker extends EventEmitter {
     }
 
     if (this.options.pollInterval === undefined) {
-      this.options.pollInterval = 30
+        this.options.pollInterval = 30;
     }
 
     if (this.options.track === undefined) {
@@ -163,6 +169,31 @@ export class TwitchOnlineTracker extends EventEmitter {
   }
 
   /**
+   * Make a /streams API request.
+   *
+   * @param {ClipsApiEndPointOptions} params The API parameters.
+   * @returns The response JSON data, unaltered from Twitch.
+   * @memberof TwitchOnlineTracker
+   */
+  async clips (params: ClipsApiEndPointOptions) {
+    try {
+      let paramString = ''
+
+      paramString = Object.keys(params).map((e) => {
+        if (Array.isArray(params[e])) {
+            return params[e].map((i) => `${e}=${i}`)
+        } else {
+          return `${e}=${params[e]}`;
+        }
+      }).join("&")
+
+      return await this.api(`clips?${paramString}`)
+    } catch (e) {
+      throw new Error(e)
+    }
+  }
+
+  /**
    * Begin tracking a stream
    *
    * @param {string[]} loginNames An array of login names of streamers
@@ -255,7 +286,10 @@ export class TwitchOnlineTracker extends EventEmitter {
     try {
       if (this.tracked.size) {
         const _streamDataJson = await this.streams({user_login: Array.from(this.tracked)})
+        let broadcaster_ids = (await this.users({login: Array.from(this.tracked)})).data.map((e) => e.id);
+        const _clipDataJson = await this.clips({broadcaster_id: broadcaster_ids, started_at: this._start.toISOString()})
         const streamRequestData: StreamRequestData = _streamDataJson
+        const clipRequestData: ClipRequestData = _clipDataJson
 
         const started = streamRequestData.data
           .filter((current) => {
@@ -272,13 +306,28 @@ export class TwitchOnlineTracker extends EventEmitter {
             })
 
         if (started.length) {
-          this.log(`${started.length} new streams`)
-          started.forEach(startedStream => this._announce(startedStream))
+          this.log(`${started.length} new streams`);
+          started.forEach(startedStream => this._announce(startedStream));
         }
 
         if (stopped.length) {
-          this.log(`${stopped.length} stopped streams`)
-          stopped.forEach(stoppedStream => this._offline(stoppedStream.user_name))
+          this.log(`${stopped.length} stopped streams`);
+          stopped.forEach(stoppedStream => this._offline(stoppedStream));
+        }
+
+        if (clipRequestData.data.length > 0 && this.options.clips) {
+          let diff = clipRequestData.data.length - this._cachedClipData.length;
+          if (diff > 0) {
+            this.log(`${diff} new clips found`);
+            clipRequestData.data.forEach(clip => {
+              if (!this._cachedClipData.some((e) => e.id === clip.id)) {
+                this._newClip(clip);
+                this._cachedClipData = clipRequestData.data;
+              }
+            });
+          } else {
+            this._cachedClipData = clipRequestData.data;
+          }
         }
 
         this._cachedStreamData = streamRequestData.data
@@ -326,11 +375,25 @@ export class TwitchOnlineTracker extends EventEmitter {
    * @param {string} channelName the channel name of the stream that has stopped
    * @memberof TwitchOnlineTracker
    */
-  _offline (channelName: string) {
+  _offline (streamData: StreamData) {
     /**
      * @event TwitchOnlineTracker#offline
      * @param {string} The stream that has stopped
      */
-    this.emit('offline', channelName)
+    this.emit('offline', streamData)
+  }
+
+  /**
+   * Emit an event when a stream stops
+   * @fires TwitchOnlineTracker#newClip
+   * @param {string} channelName the channel name of the stream that has stopped
+   * @memberof TwitchOnlineTracker
+   */
+  _newClip (clipData: ClipData) {
+    /**
+     * @event TwitchOnlineTracker#newClip
+     * @param {string} The stream has a new clip
+     */
+    this.emit('clip', clipData)
   }
 }

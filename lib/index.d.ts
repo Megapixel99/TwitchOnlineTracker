@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import * as EventEmitter from 'events';
-import { StreamData, StreamsApiEndPointOptions, TwitchOnlineTrackerOptions, UsersApiEndpointOptions } from './interfaces';
+import { StreamData, ClipData, StreamsApiEndPointOptions, ClipsApiEndPointOptions, TwitchOnlineTrackerOptions, UsersApiEndpointOptions } from './interfaces';
 /**
  * Twitch Online Tracker
  *
@@ -11,6 +11,7 @@ export declare class TwitchOnlineTracker extends EventEmitter {
     tracked: Set<string>;
     bearer: string;
     _cachedStreamData: StreamData[];
+    _cachedClipData: ClipData[];
     _loopIntervalId: any;
     /**
      *Creates an instance of TwitchOnlineTracker.
@@ -51,6 +52,14 @@ export declare class TwitchOnlineTracker extends EventEmitter {
      * @memberof TwitchOnlineTracker
      */
     streams(params: StreamsApiEndPointOptions): Promise<any>;
+    /**
+     * Make a /streams API request.
+     *
+     * @param {ClipsApiEndPointOptions} params The API parameters.
+     * @returns The response JSON data, unaltered from Twitch.
+     * @memberof TwitchOnlineTracker
+     */
+    clips(params: ClipsApiEndPointOptions): Promise<any>;
     /**
      * Begin tracking a stream
      *
@@ -103,5 +112,12 @@ export declare class TwitchOnlineTracker extends EventEmitter {
      * @param {string} channelName the channel name of the stream that has stopped
      * @memberof TwitchOnlineTracker
      */
-    _offline(channelName: string): void;
+    _offline(streamData: StreamData): void;
+    /**
+     * Emit an event when a stream stops
+     * @fires TwitchOnlineTracker#newClip
+     * @param {string} channelName the channel name of the stream that has stopped
+     * @memberof TwitchOnlineTracker
+     */
+    _newClip(clipData: ClipData): void;
 }
